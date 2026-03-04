@@ -9,7 +9,7 @@ import logging
 import math
 from typing import Iterable, Any, Callable
 import time
-
+import wandb
 import torch
 from torch.nn.parallel import DistributedDataParallel
 from torchmetrics.aggregation import MeanMetric
@@ -155,5 +155,7 @@ def train_one_epoch(
             if log_writer is not None:
                 for k, v in metrics.items():
                     log_writer.add_scalar(f"ep_{k}", v, epoch_1000x)  # we use epoch * 1000 to plot, for calibrating different batch sizes
+            if wandb.run is not None:
+                wandb.log({f"train/{k}": v for k, v in metrics.items()}, step=steps)
 
     return

@@ -70,4 +70,9 @@ def get_args_parser():
     parser.add_argument("--test_run", action="store_true", help="Only run one batch of training and evaluation.")
     parser.add_argument("--not_compile", action="store_false", dest="compile", default=True, help="Disable compilation.")
 
+    # Weights & Biases
+    parser.add_argument("--use_wandb", action="store_true", default=False, help="Enable Weights & Biases logging.")
+    parser.add_argument("--wandb_project", default="meanflow++", type=str, help="W&B project name.")
+    parser.add_argument("--wandb_run_name", default=None, type=str, help="W&B run name. Defaults to auto-generated.")
+
     return parser

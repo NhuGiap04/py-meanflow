@@ -28,7 +28,7 @@ from training.load_and_save import load_model, save_model
 from training.train_loop import train_one_epoch, train_step
 from torchmetrics.aggregation import MeanMetric
 import models.rng as rng
-
+import wandb
 from torch.utils.tensorboard import SummaryWriter
 
 torch.set_float32_matmul_precision('high')
@@ -112,6 +112,14 @@ def main(args):
         os.makedirs(args.output_dir, exist_ok=True)
         log_writer = SummaryWriter(log_dir=args.output_dir)
         logger.info(f"Tensorboard writer created at {args.output_dir}")
+        if args.use_wandb:
+            wandb.init(
+                project=args.wandb_project,
+                name=args.wandb_run_name,
+                config=vars(args),
+                dir=args.output_dir,
+            )
+            logger.info(f"W&B run initialized: {wandb.run.name}")
     else:
         log_writer = None
         logger.info('Writer not created.')
@@ -229,6 +237,8 @@ def main(args):
             if log_writer is not None and "fid" in eval_stats:
                 logging.info(f"Eval {epoch + 1} epochs finished: FID_ema{ema_decay}: {eval_stats['fid']}")
                 log_writer.add_scalar(f"FID_ema{ema_decay}", eval_stats["fid"], epoch + 1)
+                if wandb.run is not None:
+                    wandb.log({f"FID_ema{ema_decay}": eval_stats["fid"]}, step=epoch + 1)
 
             # Eval extra ema model:
             for i in range(len(model_without_ddp.ema_decays)):
@@ -238,6 +248,8 @@ def main(args):
                 if log_writer is not None and "fid" in eval_stats:
                     logging.info(f"Eval {epoch + 1} epochs finished: FID_ema{ema_decay}: {eval_stats['fid']}")
                     log_writer.add_scalar(f"FID_ema{ema_decay}", eval_stats["fid"], epoch + 1)
+                    if wandb.run is not None:
+                        wandb.log({f"FID_ema{ema_decay}": eval_stats["fid"]}, step=epoch + 1)
 
             # Eval no-ema model:
             net_eval = model_without_ddp.net
@@ -245,6 +257,8 @@ def main(args):
             if log_writer is not None and "fid" in eval_stats:
                 logging.info(f"Eval {epoch + 1} epochs finished: FID w/o ema: {eval_stats['fid']}")
                 log_writer.add_scalar("FID", eval_stats["fid"], epoch + 1)
+                if wandb.run is not None:
+                    wandb.log({"FID": eval_stats["fid"]}, step=epoch + 1)
 
         if args.test_run or args.eval_only:
             break
@@ -252,6 +266,8 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     logger.info(f"Training time {total_time_str}")
+    if wandb.run is not None:
+        wandb.finish()
 
 
 if __name__ == "__main__":

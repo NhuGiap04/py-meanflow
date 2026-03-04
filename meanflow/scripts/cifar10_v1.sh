@@ -1,6 +1,7 @@
 torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     train.py \
     --output_dir=./tmp \
+    --use_wandb \
     --dataset=cifar10 \
     --batch_size=128 \
     --lr=0.0006 \
