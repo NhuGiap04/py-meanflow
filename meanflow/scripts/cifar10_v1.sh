@@ -1,4 +1,4 @@
-torchrun --standalone --nproc_per_node=8 --master_port=12345 \
+torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     train.py \
     --output_dir=./tmp \
     --dataset=cifar10 \
