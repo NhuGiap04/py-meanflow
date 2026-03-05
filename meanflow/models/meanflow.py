@@ -33,7 +33,7 @@ class MeanFlow(nn.Module):
         for i in range(len(self.ema_decays)):
             update_ema_net(self.net, self._modules[f"net_ema{i + 1}"], num_updates)
 
-    def forward_with_loss(self, x, aug_cond):
+    def forward_with_loss(self, x, aug_cond, lambda_weight=1.0):
 
         device = x.device
         e = torch.randn_like(x).to(device)
@@ -50,13 +50,18 @@ class MeanFlow(nn.Module):
 
         dtdt = torch.ones_like(t)
         drdt = torch.zeros_like(r)
+        dtdr = torch.zeros_like(t)
+        drdr = torch.ones_like(r)
 
         with torch.amp.autocast("cuda", enabled=False):
-            u_pred, dudt = torch.func.jvp(u_func, (z, t, r), (v, dtdt, drdt))
-        
-            u_tgt = (v - (t - r) * dudt).detach()
+            u_pred_t, dudt = torch.func.jvp(u_func, (z, t, r), (v, dtdt, drdt))
+            u_pred_r, dudr = torch.func.jvp(u_func, (z, t, r), (torch.zeros_like(v), dtdr, drdr))
 
-            loss = (u_pred - u_tgt)**2
+        
+            u_tgt_t = (v - (t - r) * dudt).detach()
+            u_tgt_r = (v + (t - r) * dudr).detach()
+
+            loss = (u_pred_t - u_tgt_t)**2 + lambda_weight * (u_pred_r - u_tgt_r)**2
             loss = loss.sum(dim=(1, 2, 3))  # squared l2 loss
             
             # adaptive weighting

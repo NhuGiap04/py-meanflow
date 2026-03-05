@@ -1,12 +1,11 @@
-export PYTHONUNBUFFERED=1
-
 torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     train.py \
     --output_dir=./tmp \
     --use_wandb \
     --dataset=cifar10 \
-    --batch_size=128 \
+    --batch_size=256 \
     --lr=0.0006 \
+    --lambda 1.0 \
     --eval_frequency=50 \
     --epochs=16000 \
     --compute_fid \

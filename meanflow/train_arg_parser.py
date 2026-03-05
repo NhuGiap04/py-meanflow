@@ -4,6 +4,7 @@
 # This source code is licensed under the CC-by-NC license found in the
 # LICENSE file in the root directory of this source tree.
 import argparse
+import datetime
 import logging
 
 
@@ -15,6 +16,7 @@ def get_args_parser():
 
     # Optimizer parameters
     parser.add_argument("--batch_size", default=64, type=int, help="Batch size per GPU (effective batch size is batch_size * # gpus")
+    parser.add_argument("--lambda", type=float, default=1.0, dest="lambda_weight")
     parser.add_argument("--epochs", default=4000, type=int)
     parser.add_argument("--lr", default=0.0006, type=float, help="learning rate (absolute lr)")
     parser.add_argument("--optimizer_betas", default=[0.9, 0.999], nargs="+", type=float, help="beta1 and beta2 for Adam optimizer")
@@ -73,6 +75,6 @@ def get_args_parser():
     # Weights & Biases
     parser.add_argument("--use_wandb", action="store_true", default=False, help="Enable Weights & Biases logging.")
     parser.add_argument("--wandb_project", default="meanflow++", type=str, help="W&B project name.")
-    parser.add_argument("--wandb_run_name", default=None, type=str, help="W&B run name. Defaults to auto-generated.")
+    parser.add_argument("--wandb_run_name", default=f"meanflow++ {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", type=str, help="W&B run name. Defaults to 'meanflow++ {datetime}'.")
 
     return parser
