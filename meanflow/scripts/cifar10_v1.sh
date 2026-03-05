@@ -3,7 +3,7 @@ torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     --output_dir=./tmp \
     --use_wandb \
     --dataset=cifar10 \
-    --batch_size=256 \
+    --batch_size=512 \
     --lr=0.0006 \
     --lambda 1.0 \
     --eval_frequency=50 \
