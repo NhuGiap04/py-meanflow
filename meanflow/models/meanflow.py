@@ -54,14 +54,14 @@ class MeanFlow(nn.Module):
         drdr = torch.ones_like(r)
 
         with torch.amp.autocast("cuda", enabled=False):
-            u_pred_t, dudt = torch.func.jvp(u_func, (z, t, r), (v, dtdt, drdt))
-            u_pred_r, dudr = torch.func.jvp(u_func, (z, t, r), (torch.zeros_like(v), dtdr, drdr))
+            u_pred, dudt = torch.func.jvp(u_func, (z, t, r), (v, dtdt, drdt))
+            _, dudr = torch.func.jvp(u_func, (z, t, r), (torch.zeros_like(v), dtdr, drdr))
 
         
             u_tgt_t = (v - (t - r) * dudt).detach()
             u_tgt_r = (v + (t - r) * dudr).detach()
 
-            loss = (u_pred_t - u_tgt_t)**2 + lambda_weight * (u_pred_r - u_tgt_r)**2
+            loss = (u_pred - u_tgt_t)**2 + lambda_weight * (u_pred - u_tgt_r)**2
             loss = loss.sum(dim=(1, 2, 3))  # squared l2 loss
             
             # adaptive weighting
