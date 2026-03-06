@@ -75,11 +75,13 @@ class MeanFlow(nn.Module):
 
             loss = loss.mean()  # mean over batch dimension
 
-            adp_wt_t = (loss_t.detach() + self.args.norm_eps) ** self.args.norm_p
-            loss_t_val = (loss_t.sum(dim=(1, 2, 3)) / adp_wt_t).mean().detach()
-            
-            adp_wt_r = (loss_r.detach() + self.args.norm_eps) ** self.args.norm_p
-            loss_r_val = (loss_r.sum(dim=(1, 2, 3)) / adp_wt_r).mean().detach()
+            loss_t_val = loss_t.sum(dim=(1, 2, 3))
+            adp_wt_t = (loss_t_val.detach() + self.args.norm_eps) ** self.args.norm_p
+            loss_t_val = (loss_t_val / adp_wt_t).mean()
+
+            loss_r_val = loss_r.sum(dim=(1, 2, 3))
+            adp_wt_r = (loss_r_val.detach() + self.args.norm_eps) ** self.args.norm_p
+            loss_r_val = (loss_r_val / adp_wt_r).mean()
 
         return loss, loss_t_val, loss_r_val
     
