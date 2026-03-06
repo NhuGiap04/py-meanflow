@@ -17,6 +17,6 @@ torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     --P_std_r 1.6 \
     --warmup_epochs 200 \
     --norm_p 0.75 \
-    --ratio 0.75 \
+    --ratio 0.5 \
     --dropout 0.2 \
     --use_edm_aug
