@@ -5,7 +5,7 @@ torchrun --standalone --nproc_per_node=1 --master_port=12345 \
     --dataset=cifar10 \
     --batch_size=512 \
     --lr=0.0006 \
-    --lambda 0 \
+    --hybrid_ratio=0.5 \
     --eval_frequency=50 \
     --epochs=16000 \
     --compute_fid \

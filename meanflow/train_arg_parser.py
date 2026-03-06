@@ -16,7 +16,7 @@ def get_args_parser():
 
     # Optimizer parameters
     parser.add_argument("--batch_size", default=64, type=int, help="Batch size per GPU (effective batch size is batch_size * # gpus")
-    parser.add_argument("--lambda", type=float, default=1.0, dest="lambda_weight")
+    parser.add_argument("--hybrid_ratio", type=float, default=0.5, dest="hybrid_ratio", help="Probability of using t-loss vs r-loss for each sample in the batch.")
     parser.add_argument("--epochs", default=4000, type=int)
     parser.add_argument("--lr", default=0.0006, type=float, help="learning rate (absolute lr)")
     parser.add_argument("--optimizer_betas", default=[0.9, 0.999], nargs="+", type=float, help="beta1 and beta2 for Adam optimizer")
