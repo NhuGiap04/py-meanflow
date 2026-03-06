@@ -68,9 +68,9 @@ def get_compiled_counts():
 augment_pipe = AugmentPipe(p=0.12, xflip=1e8, yflip=0, scale=1, rotate_frac=0, aniso=1, translate_frac=1)  # turn off yflip and rotate
 
 def train_step(model_without_ddp, *args, **kwargs):
-    loss = model_without_ddp.forward_with_loss(*args, **kwargs)
+    loss, loss_t, loss_r = model_without_ddp.forward_with_loss(*args, **kwargs)
     loss.backward(create_graph=False)
-    return loss
+    return loss, loss_t, loss_r
 
 
 def train_one_epoch(
@@ -89,6 +89,8 @@ def train_one_epoch(
     model.train(True)
 
     batch_loss = meters['batch_loss']
+    batch_loss_t = meters['batch_loss_t']
+    batch_loss_r = meters['batch_loss_r']
     batch_time = meters['batch_time']
 
     # declare the unwrapped model
@@ -110,7 +112,7 @@ def train_one_epoch(
         if args.compile and epoch == args.start_epoch and data_iter_step == 0:
             logging.info(f"Compiling the first train step, this may take a while...")
         
-        loss = rng.train_step_with_rng_control(compiled_train_step, model_without_ddp, steps, args.seed, samples, aug_cond, lambda_weight=args.lambda_weight)
+        loss, loss_t, loss_r = rng.train_step_with_rng_control(compiled_train_step, model_without_ddp, steps, args.seed, samples, aug_cond, lambda_weight=args.lambda_weight)
         if args.compile:
             assert get_compiled_counts() > 0, "Compilation not triggered."
 
@@ -121,6 +123,8 @@ def train_one_epoch(
 
         loss_value = loss.item()
         batch_loss.update(loss_value)
+        batch_loss_t.update(loss_t.item())
+        batch_loss_r.update(loss_r.item())
 
         if not math.isfinite(loss_value):
             raise ValueError(f"Loss is {loss_value}, stopping training")
@@ -137,10 +141,14 @@ def train_one_epoch(
         lr = optimizer.param_groups[0]["lr"]
         lr_schedule.step()  # per-iteration lr
         if (steps + 1) % args.log_per_step == 0:
-            loss_ave = batch_loss.compute().detach().cpu().numpy() # logging only
+            loss_ave = batch_loss.compute().detach().cpu().numpy()
+            loss_ave_t = batch_loss_t.compute().detach().cpu().numpy()
+            loss_ave_r = batch_loss_r.compute().detach().cpu().numpy() # for logging only
             sec_per_iter = batch_time.compute()
             batch_time.reset()
             batch_loss.reset()
+            batch_loss_t.reset()
+            batch_loss_r.reset()
             logger.info(
                 f"Epoch {epoch} [{data_iter_step}/{len(data_loader)}]: loss = {loss_ave:.6f}, lr = {lr:.6f}, steps = {steps}, sec_per_iter = {sec_per_iter:.4f}"
             )
@@ -151,6 +159,8 @@ def train_one_epoch(
                 "epoch": steps / len(data_loader),
                 "steps": steps,
                 "sec_per_iter": sec_per_iter,
+                "loss_t": loss_ave_t,
+                "loss_r": loss_ave_r,
             }
             if log_writer is not None:
                 for k, v in metrics.items():
