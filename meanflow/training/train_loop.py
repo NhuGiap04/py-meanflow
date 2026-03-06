@@ -112,7 +112,7 @@ def train_one_epoch(
         if args.compile and epoch == args.start_epoch and data_iter_step == 0:
             logging.info(f"Compiling the first train step, this may take a while...")
         
-        loss, loss_t, loss_r = rng.train_step_with_rng_control(compiled_train_step, model_without_ddp, steps, args.seed, samples, aug_cond, lambda_weight=args.lambda_weight)
+        loss, loss_t, loss_r = rng.train_step_with_rng_control(compiled_train_step, model_without_ddp, steps, args.seed, samples, aug_cond, hybrid_ratio=args.hybrid_ratio)
         if args.compile:
             assert get_compiled_counts() > 0, "Compilation not triggered."
 
