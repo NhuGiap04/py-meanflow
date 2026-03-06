@@ -65,10 +65,8 @@ class MeanFlow(nn.Module):
             loss_t = (u_pred - u_tgt_t)**2
             loss_r = (u_pred - u_tgt_r)**2
 
-            if random.random() < hybrid_ratio:
-                loss = loss_t
-            else:
-                loss = loss_r
+            mask = (torch.rand((), device=device) < hybrid_ratio).to(loss_t.dtype)
+            loss = mask * loss_t + (1 - mask) * loss_r
             loss = loss.sum(dim=(1, 2, 3))  # squared l2 loss
 
             # adaptive weighting
