@@ -191,10 +191,14 @@ def main(args):
 
     batch_loss = MeanMetric().to(device, non_blocking=True)
     batch_time = MeanMetric().to(device, non_blocking=True)
+    batch_loss_t = MeanMetric().to(device, non_blocking=True)
+    batch_loss_r = MeanMetric().to(device, non_blocking=True)
     batch_loss.reset()
     batch_time.reset()
+    batch_loss_t.reset()
+    batch_loss_r.reset()
 
-    meters = {'batch_loss': batch_loss, 'batch_time': batch_time,}
+    meters = {'batch_loss': batch_loss, 'batch_time': batch_time, 'batch_loss_t': batch_loss_t, 'batch_loss_r': batch_loss_r}
 
     logger.info(f"Start from {args.start_epoch} to {args.epochs} epochs")
     start_time = time.time()
