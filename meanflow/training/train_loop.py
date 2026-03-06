@@ -122,9 +122,12 @@ def train_one_epoch(
             gradient_sanity_check(model)
 
         loss_value = loss.item()
+        loss_t_value = loss_t.item()
+        loss_r_value = loss_r.item()
+
         batch_loss.update(loss_value)
-        batch_loss_t.update(loss_t.item())
-        batch_loss_r.update(loss_r.item())
+        batch_loss_t.update(loss_t_value)
+        batch_loss_r.update(loss_r_value)
 
         if not math.isfinite(loss_value):
             raise ValueError(f"Loss is {loss_value}, stopping training")
