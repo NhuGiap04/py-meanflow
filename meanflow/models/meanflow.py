@@ -95,3 +95,18 @@ class MeanFlow(nn.Module):
         u = net(z_1, (t, t - r), aug_cond=None)
         z_0 = z_1 - u
         return z_0
+
+    def sample_multisteps(self, samples_shape, num_steps, net=None, device=None):
+        net = net if net is not None else self.net_ema
+
+        z = torch.randn(samples_shape, dtype=torch.float32, device=device)
+
+        dt = 1.0 / num_steps
+        for i in range(num_steps, 0, -1):
+            t_curr = i * dt
+            t = torch.full((samples_shape[0],), t_curr, dtype=torch.float32, device=device)
+            h = torch.full((samples_shape[0],), dt, dtype=torch.float32, device=device)
+            u = net(z, (t, h), aug_cond=None)
+            z = z - dt * u
+
+        return z
